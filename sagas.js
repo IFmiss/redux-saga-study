@@ -1,7 +1,7 @@
 // import { delay, takeEvery } from 'redux-saga'
 import { takeLatest } from 'redux-saga'
 import API from './api'
-import { put, all, call} from 'redux-saga/effects'
+import { put, all, apply, take} from 'redux-saga/effects'
 function* helloSaga () {
   console.log('hello saga!')
 }
@@ -9,7 +9,7 @@ function* helloSaga () {
 function* fetchData (actions) {
   yield put({type: 'FETCHING_DATA'})
   try {
-    const data = yield call(API.fetchData, actions.url)
+    const data = yield apply(API, API.fetchData, [actions.url])
     yield put({type: 'FETCH_SUCCESS', data})
   } catch (e) {
     yield put({type: 'FETCH_FAILED', e})
