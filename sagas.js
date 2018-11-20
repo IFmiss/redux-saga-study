@@ -1,7 +1,7 @@
-// import { delay, takeEvery } from 'redux-saga'
-import { takeLatest } from 'redux-saga'
+import { delay, takeEvery } from 'redux-saga'
+// import { takeLatest } from 'redux-saga'
 import API from './api'
-import { put, all, call, take} from 'redux-saga/effects'
+import { put, all, call, take, select} from 'redux-saga/effects'
 function* helloSaga () {
   console.log('hello saga!')
 }
@@ -24,12 +24,31 @@ function* requestData (actions) {
 }
 
 function* watchFetchData () {
-  yield* takeLatest('FETCH_REQUESTED', requestData)
+  yield* takeEvery('FETCH_REQUESTED', requestData)
+}
+
+// function* watchAndLog () {
+//   yield takeEvery('*', function* logger(action) {
+//     const state = yield select()
+//     console.log('action -------------------', action)
+//     console.log('state after --------------', state)
+//   })
+// }
+
+// take 实现日志打印
+function* watchAndLog () {
+  while (true) {
+    const action = yield take('*')
+    const state = yield select()
+    console.log('action -------------------', action)
+    console.log('state after --------------', state)
+  }
 }
 
 export default function* rootSaga () {
   yield all ([
     helloSaga(),
-    watchFetchData()
+    watchFetchData(),
+    watchAndLog()
   ])
 }
