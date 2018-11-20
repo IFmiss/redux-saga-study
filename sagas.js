@@ -10,6 +10,7 @@ function* fetchData (actions) {
   yield put({type: 'FETCHING_DATA'})
   try {
     const data = yield apply(API, API.fetchData, [actions.url])
+    // 通过put 去dispath一个action，带类型以及其他参数
     yield put({type: 'FETCH_SUCCESS', data})
   } catch (e) {
     yield put({type: 'FETCH_FAILED', e})
