@@ -16,16 +16,14 @@ const store = createStore(
 )
 sagaMiddleware.run(rootSaga)
 
-const action = type => store.dispatch({type})
+// const action = type => store.dispatch({type})
 
 function render() {
   ReactDOM.render(
     <Counter
       value={store.getState()}
-      onIncrement={() => action('INCREMENT')}
-      onDecrement={() => action('DECREMENT')}
-      onIncrementAsync={() => action('INCREMENT_ASYNC')}
-      onDecrementAsync={() => action('DECREMENT_ASYNC')}/>,
+      isFetch={store.getState().isReq}
+      onFetchData={() => store.dispatch({type: 'FETCH_REQUESTED', url: 'http://www.daiwei.org/vue/server/home.php?inAjax=1&do=getImageByBingJson'})}/>,
     document.getElementById('root')
   )
 }

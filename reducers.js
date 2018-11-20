@@ -1,11 +1,23 @@
-export default function counter(state = 0, action) {
+export default function fetch (state = {}, action) {
   switch (action.type) {
-    case 'INCREMENT':
-      return state + 1
-    case 'INCREMENT_IF_ODD':
-      return (state % 2 !== 0) ? state + 1 : state
-    case 'DECREMENT':
-      return state - 1
+    case 'FETCHING_DATA':
+      return{
+        ...state,
+        isReq: true
+      }
+    case 'FETCH_SUCCESS':
+      let data = {
+        ...state,
+        fetchData: action.data,
+        isReq: false
+      }
+      return data
+    case 'FETCH_FAILED':
+      return {
+        ...state,
+        err: action.e,
+        isReq: false
+      }
     default:
       return state
   }

@@ -1,31 +1,29 @@
-import { delay } from 'redux-saga'
-import { put, takeEvery, all } from 'redux-saga/effects'
+// import { delay, takeEvery } from 'redux-saga'
+import { takeLatest } from 'redux-saga'
+import API from './api'
+import { put, all, call} from 'redux-saga/effects'
 function* helloSaga () {
   console.log('hello saga!')
 }
 
-function* INCREMENT_ASYNC () {
-  yield delay(1000)
-  yield put({ type: 'INCREMENT' })
+function* fetchData (actions) {
+  yield put({type: 'FETCHING_DATA'})
+  try {
+    const data = yield call(API.fetchData, actions.url)
+    yield put({type: 'FETCH_SUCCESS', data})
+  } catch (e) {
+    yield put({type: 'FETCH_FAILED', e})
+  }
 }
 
-function* WATCH_INCREMENT_ASYNC () {
-  yield takeEvery('INCREMENT_ASYNC', INCREMENT_ASYNC)
-}
 
-function* DECREMENT_ASYNC () {
-  yield delay(1000)
-  yield put({ type: 'DECREMENT' })
-}
-
-function* WATCH_DECREMENT_ASYNC () {
-  yield takeEvery('DECREMENT_ASYNC', DECREMENT_ASYNC)
+function* watchFetchData () {
+  yield* takeLatest('FETCH_REQUESTED', fetchData)
 }
 
 export default function* rootSaga () {
   yield all ([
     helloSaga(),
-    WATCH_INCREMENT_ASYNC(),
-    WATCH_DECREMENT_ASYNC()
+    watchFetchData()
   ])
 }
