@@ -1,25 +1,27 @@
 import { delay, takeEvery } from 'redux-saga'
 // import { takeLatest } from 'redux-saga'
 import API from './api'
-import { put, all, call, take, select, fork, cancel, cancelled} from 'redux-saga/effects'
+import { put, all, call, take, select, race} from 'redux-saga/effects'
 function* helloSaga () {
   console.log('hello saga!')
 }
 
-function fetchData (url) {
-  return API.fetchData(url)
-  .then(response => ({ response }))
-  .catch(error => ({ error }))
-}
-
 function* requestData (actions) {
   yield put({type: 'FETCHING_DATA'})
-  const { response, error } = yield call(fetchData, actions.url)
-  if (response) {
-    // 通过put 去dispath一个action，带类型以及其他参数
-    yield put({type: 'FETCH_SUCCESS', data: response})
+  const { posts, timeout } = yield race({
+    posts: call(API.fetchData, actions.url),
+    timeout: call(delay, 1000)
+  })
+  console.log(posts)
+  if (posts) {
+    if (posts.data) {
+      // 通过put 去dispath一个action，带类型以及其他参数
+      yield put({type: 'FETCH_SUCCESS', data: posts.data})
+    } else {
+      yield put({type: 'FETCH_FAILED', e: posts})
+    }
   } else {
-    yield put({type: 'FETCH_FAILED', e: error})
+    yield put({type: 'FETCH_FAILED', e: '请求超时了哦哦哦哦！！！！！'})
   }
 }
 
@@ -37,44 +39,10 @@ function* watchAndLog () {
   }
 }
 
-function* sub (username, pwd) {
-  try{
-    const [req, bing] = yield([
-      call(API.subLogin, username, pwd),
-      call(fetchData, 'http://www.daiwei.org/vue/server/home.php?inAjax=1&do=getImageByBingJson')
-    ])
-
-    yield put({type: 'LOGIN_SUCCESS', token: req})
-    yield call(API.storeItem, 'token', JSON.stringify(req) + '---------------------------------------' + JSON.stringify(bing))
-    return req
-  } catch (e) {
-    yield put({type: 'LOGIN_ERROR', error: e})
-  } finally {
-    if (yield cancelled()) {
-      alert('执行loginout导致登陆时候的action被取消')
-      // ... put special cancellation handling code here
-    }
-  }
-}
-
-function* loginFlow () {
-  while (true) {
-    const {username, pwd} = yield take('LOGIN_REQUEST')
-    const tesk = yield fork(sub, username, pwd)
-  
-    const action = yield take(['LOGIN_OUT', 'LOGIN_ERROR'])
-    if (action.type === 'LOGIN_OUT') {
-      yield cancel(tesk)
-    }
-    yield call(API.clearItem, 'token')
-  }
-}
-
 export default function* rootSaga () {
   yield all ([
     helloSaga(),
     watchFetchData(),
-    watchAndLog(),
-    loginFlow()
+    watchAndLog()
   ])
 }

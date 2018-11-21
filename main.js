@@ -6,10 +6,7 @@ import { createStore, applyMiddleware } from 'redux'
 import createSagaMiddleware from 'redux-saga'
 
 import Counter from './Counter'
-import Login from './Login'
 import reducer from './reducers'
-
-import { Provider } from 'react-redux'
 
 import rootSaga from './sagas'
 const sagaMiddleware = createSagaMiddleware()
@@ -28,9 +25,6 @@ function render() {
       value={store.getState().fetch}
       isFetch={store.getState().fetch.isReq}
       onFetchData={() => store.dispatch({type: 'FETCH_REQUESTED', url: 'http://www.daiwei.org/vue/server/home.php?inAjax=1&do=getImageByBingJson'})}/>
-      <Provider store={store}>
-        <Login/>
-      </Provider>
     </div>,
     document.getElementById('root')
   )
