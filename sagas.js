@@ -39,10 +39,13 @@ function* watchAndLog () {
 
 function* sub (username, pwd) {
   try{
-    const req = yield call(API.subLogin, username, pwd)
-    console.log(req)
+    const [req, bing] = yield([
+      call(API.subLogin, username, pwd),
+      call(fetchData, 'http://www.daiwei.org/vue/server/home.php?inAjax=1&do=getImageByBingJson')
+    ])
+
     yield put({type: 'LOGIN_SUCCESS', token: req})
-    yield call(API.storeItem, 'token', JSON.stringify(req))
+    yield call(API.storeItem, 'token', JSON.stringify(req) + '---------------------------------------' + JSON.stringify(bing))
     return req
   } catch (e) {
     yield put({type: 'LOGIN_ERROR', error: e})
