@@ -1,7 +1,7 @@
 import { delay, takeEvery } from 'redux-saga'
 // import { takeLatest } from 'redux-saga'
 import API from './api'
-import { put, all, call, take, select, fork, cancel} from 'redux-saga/effects'
+import { put, all, call, take, select, fork, cancel, cancelled} from 'redux-saga/effects'
 function* helloSaga () {
   console.log('hello saga!')
 }
@@ -27,14 +27,6 @@ function* watchFetchData () {
   yield* takeEvery('FETCH_REQUESTED', requestData)
 }
 
-// function* watchAndLog () {
-//   yield takeEvery('*', function* logger(action) {
-//     const state = yield select()
-//     console.log('action -------------------', action)
-//     console.log('state after --------------', state)
-//   })
-// }
-
 // take 实现日志打印
 function* watchAndLog () {
   while (true) {
@@ -50,21 +42,26 @@ function* sub (username, pwd) {
     const req = yield call(API.subLogin, username, pwd)
     console.log(req)
     yield put({type: 'LOGIN_SUCCESS', token: req})
+    yield call(API.storeItem, 'token', JSON.stringify(req))
     return req
   } catch (e) {
     yield put({type: 'LOGIN_ERROR', error: e})
+  } finally {
+    if (yield cancelled()) {
+      alert('执行loginout导致登陆时候的action被取消')
+      // ... put special cancellation handling code here
+    }
   }
 }
 
 function* loginFlow () {
   while (true) {
     const {username, pwd} = yield take('LOGIN_REQUEST')
-    console.log('username', username)
-    const token = yield fork(sub, username, pwd)
-    yield call(API.storeItem, 'token', token)
+    const tesk = yield fork(sub, username, pwd)
+  
     const action = yield take(['LOGIN_OUT', 'LOGIN_ERROR'])
     if (action.type === 'LOGIN_OUT') {
-      yield cancel(token)
+      yield cancel(tesk)
     }
     yield call(API.clearItem, 'token')
   }
